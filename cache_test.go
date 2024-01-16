@@ -150,7 +150,7 @@ func TestStructPointerStorage(t *testing.T) {
 
 func TestMaxKeys(t *testing.T) {
 	c := CreateCache(5, 1, false, 5)
-	
+
 	ok := c.Set("A", 1)
 	if !ok {
 		t.Errorf("Failed to set value")
@@ -172,10 +172,45 @@ func TestMaxKeys(t *testing.T) {
 		t.Errorf("Failed to set value")
 	}
 
+	c.Delete("A")
+	c.Delete("B")
 
 	ok = c.Set("F", 1)
 	if ok {
 		t.Errorf("Set value past key amount max. Current: %d, Max: %d", c.currentKeys, c.maxKeys)
+	}
+}
+
+func TestBelowMaxKeys(t *testing.T) {
+	c := CreateCache(5, 1, false, 5)
+
+	ok := c.Set("A", 1)
+	if !ok {
+		t.Errorf("Failed to set value")
+	}
+	ok = c.Set("B", 1)
+	if !ok {
+		t.Errorf("Failed to set value")
+	}
+	ok = c.Set("C", 1)
+	if !ok {
+		t.Errorf("Failed to set value")
+	}
+	ok = c.Set("D", 1)
+	if !ok {
+		t.Errorf("Failed to set value")
+	}
+	ok = c.Set("E", 1)
+	if !ok {
+		t.Errorf("Failed to set value")
+	}
+
+	c.Delete("A")
+	c.Delete("B")
+
+	ok = c.Set("F", 1)
+	if !ok {
+		t.Errorf("Set value when below max amount of keys. Current: %d, Max: %d", c.currentKeys, c.maxKeys)
 	}
 }
 

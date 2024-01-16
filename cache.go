@@ -37,14 +37,6 @@ func CreateCache(stdTTL int, checkInterval int, deleteOnExpire bool, maxKeys int
 	return c
 }
 
-func (c *cache) updateNumKeys() {
-	i := 0
-	for range c.table {
-		i++
-	}
-	c.currentKeys = i
-}
-
 func (c *cache) lifetimeWatcher() {
 	for {
 		time.Sleep(time.Duration(c.checkInterval) * time.Second)
@@ -73,8 +65,8 @@ func (c *cache) Set(key string, item interface{}) bool {
 		c.Unlock()
 		return true
 	}
-	
-	if c.currentKeys + 1 > c.maxKeys && c.maxKeys > 0 {
+
+	if c.currentKeys+1 > c.maxKeys && c.maxKeys > 0 {
 		c.Unlock()
 		return false
 	}
