@@ -37,6 +37,14 @@ func CreateCache(stdTTL int, checkInterval int, deleteOnExpire bool, maxKeys int
 	return c
 }
 
+func (c *cache) updateNumKeys() {
+	i := 0
+	for range c.table {
+		i++
+	}
+	c.currentKeys = i
+}
+
 func (c *cache) lifetimeWatcher() {
 	for {
 		time.Sleep(time.Duration(c.checkInterval) * time.Second)
@@ -46,22 +54,36 @@ func (c *cache) lifetimeWatcher() {
 			entry.lifetime += c.checkInterval
 			if entry.lifetime >= c.stdTTL {
 				delete(c.table, key)
+				c.currentKeys = len(c.table)
 			}
 		}
 		c.Unlock()
 	}
 }
 
-func (c *cache) Set(key string, item interface{}) error {
+func (c *cache) Set(key string, item interface{}) bool {
 	entry := &tableEntry{
 		item: item,
 	}
 
 	c.Lock()
-	c.table[key] = entry
-	c.Unlock()
 
-	return nil
+	if _, ok := c.table[key]; ok {
+		c.table[key] = entry
+		c.Unlock()
+		return true
+	}
+	
+	if c.currentKeys + 1 > c.maxKeys && c.maxKeys > 0 {
+		c.Unlock()
+		return false
+	}
+
+	c.table[key] = entry
+	c.currentKeys++
+
+	c.Unlock()
+	return true
 }
 
 func (c *cache) Get(key string) (interface{}, bool) {
@@ -80,5 +102,6 @@ func (c *cache) Get(key string) (interface{}, bool) {
 func (c *cache) Delete(key string) {
 	c.Lock()
 	delete(c.table, key)
+	c.currentKeys = len(c.table)
 	c.Unlock()
 }
