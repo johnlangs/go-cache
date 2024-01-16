@@ -1,6 +1,9 @@
 package cache
 
-import "sync"
+import (
+	"sync"
+	"time"
+)
 
 type tableEntry struct {
 	item interface{}
@@ -9,18 +12,43 @@ type tableEntry struct {
 
 type cache struct {
 	sync.RWMutex
-	stdTTL int
 	table map[string]*tableEntry
+	stdTTL int
+	checkInterval int
 	deleteOnExpire bool
 	maxKeys int
+	currentKeys int
 }
 
-func CreateCache(stdTTL int, maxKeys int, deleteOnExpire bool) *cache {
-	return &cache{
+func CreateCache(stdTTL int, checkInterval int, deleteOnExpire bool, maxKeys int) *cache {	
+	c := &cache{
 		table: make(map[string]*tableEntry),
 		stdTTL: stdTTL,
-		maxKeys: maxKeys,
+		checkInterval: checkInterval,
 		deleteOnExpire: deleteOnExpire,
+		maxKeys: maxKeys,
+		currentKeys: 0,
+	}
+
+	if deleteOnExpire {
+		go c.lifetimeWatcher()
+	}
+
+	return c
+}
+
+func (c *cache) lifetimeWatcher() {
+	for {
+		time.Sleep(time.Duration(c.checkInterval) * time.Second)
+
+		c.Lock()
+		for key, entry := range c.table {
+			entry.lifetime += c.checkInterval
+			if entry.lifetime >= c.stdTTL {
+				delete(c.table, key)
+			}
+		}
+		c.Unlock()
 	}
 }
 

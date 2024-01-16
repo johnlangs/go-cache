@@ -3,10 +3,11 @@ package cache
 import (
 	"slices"
 	"testing"
+	"time"
 )
 
 func TestSet(t *testing.T) {
-	c := CreateCache(0, -1, false)
+	c := CreateCache(0, 0, false, -1)
 
 	err := c.Set("A", 1)
 	if err != nil {
@@ -15,7 +16,7 @@ func TestSet(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	c := CreateCache(0, -1, false)
+	c := CreateCache(0, 0, false, -1)
 
 	err := c.Set("A", 1)
 	if err != nil {
@@ -38,7 +39,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	c := CreateCache(0, -1, false)
+	c := CreateCache(0, 0, false, -1)
 
 	err := c.Set("A", 1)
 	if err != nil {
@@ -77,7 +78,7 @@ func TestStructStorage(t *testing.T) {
 	}
 
 	someObj := thisStruct{10, "Hello!", []int{1, 2, 3}}
-	c := CreateCache(0, -1, false)
+	c := CreateCache(0, 0, false, -1)
 
 	err := c.Set("struct", someObj)
 	if err != nil {
@@ -116,7 +117,7 @@ func TestStructPointerStorage(t *testing.T) {
 	}
 
 	someObj := &thisStruct{10, "Hello!", []int{1, 2, 3}}
-	c := CreateCache(0, -1, false)
+	c := CreateCache(0, 0, false, -1)
 
 	err := c.Set("struct", someObj)
 	if err != nil {
@@ -144,5 +145,24 @@ func TestStructPointerStorage(t *testing.T) {
 	}
 	if ok {
 		t.Errorf("Failed to delete value: Access was Ok")
+	}
+}
+
+func TestLifetimeWatcher(t *testing.T) {
+	c := CreateCache(5, 1, true, -1)
+	c.Set("A", 1)
+
+	time.Sleep(1 * time.Second)
+	val, ok := c.Get("A")
+
+	if !ok || val == nil {
+		t.Errorf("Failed to get value before lifetime excceded")
+	}
+
+	time.Sleep(5 * time.Second)
+	val, ok = c.Get("A")
+
+	if ok || val != nil {
+		t.Errorf("Failed to delete value after lifetime excceded")
 	}
 }
