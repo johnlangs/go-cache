@@ -72,8 +72,8 @@ func TestDelete(t *testing.T) {
 
 func TestStructStorage(t *testing.T) {
 	type thisStruct struct {
-		num int
-		str string
+		num  int
+		str  string
 		nums []int
 	}
 
@@ -111,8 +111,8 @@ func TestStructStorage(t *testing.T) {
 
 func TestStructPointerStorage(t *testing.T) {
 	type thisStruct struct {
-		num int
-		str string
+		num  int
+		str  string
 		nums []int
 	}
 

@@ -6,28 +6,28 @@ import (
 )
 
 type tableEntry struct {
-	item interface{}
+	item     interface{}
 	lifetime int
 }
 
 type cache struct {
 	sync.RWMutex
-	table map[string]*tableEntry
-	stdTTL int
-	checkInterval int
+	table          map[string]*tableEntry
+	stdTTL         int
+	checkInterval  int
 	deleteOnExpire bool
-	maxKeys int
-	currentKeys int
+	maxKeys        int
+	currentKeys    int
 }
 
-func CreateCache(stdTTL int, checkInterval int, deleteOnExpire bool, maxKeys int) *cache {	
+func CreateCache(stdTTL int, checkInterval int, deleteOnExpire bool, maxKeys int) *cache {
 	c := &cache{
-		table: make(map[string]*tableEntry),
-		stdTTL: stdTTL,
-		checkInterval: checkInterval,
+		table:          make(map[string]*tableEntry),
+		stdTTL:         stdTTL,
+		checkInterval:  checkInterval,
 		deleteOnExpire: deleteOnExpire,
-		maxKeys: maxKeys,
-		currentKeys: 0,
+		maxKeys:        maxKeys,
+		currentKeys:    0,
 	}
 
 	if deleteOnExpire {
