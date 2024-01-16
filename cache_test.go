@@ -172,9 +172,6 @@ func TestMaxKeys(t *testing.T) {
 		t.Errorf("Failed to set value")
 	}
 
-	c.Delete("A")
-	c.Delete("B")
-
 	ok = c.Set("F", 1)
 	if ok {
 		t.Errorf("Set value past key amount max. Current: %d, Max: %d", c.currentKeys, c.maxKeys)
