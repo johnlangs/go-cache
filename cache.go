@@ -11,12 +11,16 @@ type cache struct {
 	sync.RWMutex
 	stdTTL int
 	table map[string]*tableEntry
+	deleteOnExpire bool
+	maxKeys int
 }
 
-func CreateCache(stdTTL int) *cache {
+func CreateCache(stdTTL int, maxKeys int, deleteOnExpire bool) *cache {
 	return &cache{
 		table: make(map[string]*tableEntry),
 		stdTTL: stdTTL,
+		maxKeys: maxKeys,
+		deleteOnExpire: deleteOnExpire,
 	}
 }
 
