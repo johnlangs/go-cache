@@ -1,24 +1,52 @@
 package cache
 
+import "sync"
+
+type tableEntry struct {
+	item interface{}
+	lifetime int
+}
+
 type cache struct {
-	table map[string]interface{}
-	
+	sync.RWMutex
+	stdTTL int
+	table map[string]*tableEntry
 }
 
-func CreateCache() cache {
-	var c cache
-	c.table = make(map[string]interface{})
-	return c
+func CreateCache(stdTTL int) *cache {
+	return &cache{
+		table: make(map[string]*tableEntry),
+		stdTTL: stdTTL,
+	}
 }
 
-func (c cache) Set(key string, item interface{}) error {
-	c.table[key] = item
+func (c *cache) Set(key string, item interface{}) error {
+	entry := &tableEntry{
+		item: item,
+	}
+
+	c.Lock()
+	c.table[key] = entry
+	c.Unlock()
+
 	return nil
 }
 
-func (c cache) Get(key string) (interface{}, bool) {
-	var item interface{}
-	var ok bool
-	item, ok = c.table[key]
-	return item, ok
+func (c *cache) Get(key string) (interface{}, bool) {
+	c.Lock()
+
+	entry, ok := c.table[key]
+	if !ok {
+		c.Unlock()
+		return nil, false
+	}
+
+	c.Unlock()
+	return entry.item, true
+}
+
+func (c *cache) Delete(key string) {
+	c.Lock()
+	delete(c.table, key)
+	c.Unlock()
 }
